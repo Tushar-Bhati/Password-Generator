@@ -1,7 +1,5 @@
 #include <iostream>
 #include <fstream>
-#include <math.h>
-#include <string>
 using namespace std;
 
 short length;
@@ -60,66 +58,135 @@ string generatePassword(){
     return s;
 }
 
-
-/*This is required during the saving process*/
-int string2int(string s){
-	int n=0;
-	for(int i=s.length()-1,j=0;i>=0;i--,j++){
-		n+=pow(10,j)*int(s[i]-48);
+void createfile(){
+	ifstream passwordFile("password.txt");;
+	ifstream nextLineFile("next.txt");
+	
+	if(!passwordFile.is_open()){
+		ofstream newpasswordFile;
+		newpasswordFile.open("password.txt");
+		newpasswordFile.close();
 	}
-	return n;
-}
-
-/*Save the password to system in text format
- * two files are created
-* 1.To save password 
-* 2.To get position to save next password */
-void toSave(string pass){
-	fstream passwordFile("password.txt");
-	fstream nextLineFile("next.txt");
-	string wannaSave;
-	cout<<"want to save password (y/n):";
-	cin>>wannaSave;
-	if(wannaSave=="Y"||wannaSave=="y"){
-		
-		string hint;
-		cout<<"Enter hint (eg: fbpassword):";
-		cin>>hint;
-		string nextLineString;
-		getline(nextLineFile,nextLineString);
-		int nextLineInt=string2int(nextLineString);
-		
-		passwordFile.seekg(nextLineInt);
-		passwordFile<<hint<<"\t\t"<<pass<<endl;
-		
-		nextLineFile.seekg(0);
-		nextLineFile<<passwordFile.tellg();
+	
+	if(!nextLineFile.is_open()){
+		ofstream newnextLineFile;
+		newnextLineFile.open("next.txt");
+		newnextLineFile<<0;
+		newnextLineFile.close();
 	}
 	
 	passwordFile.close();
 	nextLineFile.close();
 }
 
-		
-int main(){
-    srand(time(NULL));
-    	
+/*Save the password to system in text format
+ * two files are created
+* 1.To save password 
+* 2.To get position to save next password */
+void Save(string pass){
+	createfile();
+	
+	fstream passwordFile("password.txt");
+	fstream nextLineFile("next.txt");
+	
+	string hint;
+	cout<<"Enter hint (eg: fbpassword): ";
+	cin>>hint;
+	
+	int nextLine;
+	nextLineFile>>nextLine;
+	
+	passwordFile.seekg(nextLine);
+	passwordFile<<hint;
+	passwordFile<<(hint.length()<8?"\t\t":"\t");
+	passwordFile<<pass<<endl;
+	cout<<"Hint: "<<hint<<"\tPassowrd: "<<pass<<endl<<"Saved"<<endl;
+	nextLineFile.seekg(0);
+	nextLineFile<<passwordFile.tellg();
+	
+	passwordFile.close();
+	nextLineFile.close();
+}
+
+
+void Help(){
+	cout<<"-----------------------"<<endl;
+	cout<<"1. Generate Password\n";
+	cout<<"2. Save Password\n";
+	cout<<"3. show All Password\n";
+	cout<<"4. Clear All Password\n";
+	cout<<"5. Help\n";
+	cout<<"6. Exit\n";
+	cout<<"-----------------------"<<endl;
+}
+
+
+void printlist(){
+	fstream passwordFile("password.txt");
+	string line;
+	while(getline(passwordFile,line)){
+		cout<<line<<endl;
+	}
+	passwordFile.close();
+}
+
+
+void Clear(){
+	char c;
 	while(true){
-		
-		string password;
-		password = generatePassword();
-		cout<<password<<endl;
-		
-		toSave(password);
-		
-		char generateMore;
-		cout<<"Generate More (y/n):";
-		cin>>generateMore;
-		if(generateMore=='y'||generateMore=='Y'){
-			cout<<endl;
+		cout<<"\nWARNING! \nConfirm to delete all save password(y/n):";
+		cin>>c;
+		if(c=='Y'||c=='y'){		
+			ofstream file;
+			file.open("password.txt");
+			file.open("next.txt");
+			file<<0;
+			break;
+		}
+		else if(c=='n'||c=='N'){
+			break;
+		}
+		else{
+			cout<<"Invalid Input\n";
 			continue;
 		}
-		break;
+	}
+}
+
+	
+int main(){
+    srand(time(NULL));
+    Help();
+    string input,password="";
+	while(true){
+		cout<<"\nUser$:";
+		cin>>input;
+		
+		if(input=="1"){
+			password = generatePassword();
+			cout<<password<<endl;
+		}
+		if(input=="2"){
+			if(password==""){
+				cout<<"No password generated\n";
+			}
+			else{
+				Save(password);
+			}
+		}
+		if(input=="3"){
+			printlist();
+		}
+		if(input=="4"){
+			Clear();
+		}
+		if(input=="5"||input=="help"||input=="Help"){
+			Help();
+		}
+		if(input=="6"){
+			break;
+		}
 		
 	}
+	return 0;
 }
